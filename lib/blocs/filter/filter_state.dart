@@ -24,7 +24,7 @@ class FilterState extends Equatable {
       filterLoading: false,
       outputImage: null,
       filterSuccess: false,
-      currentFilter: null,
+      currentFilter: FilterType.Normal,
       imageEncode: [],
     );
   }

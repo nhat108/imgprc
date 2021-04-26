@@ -11,7 +11,7 @@ class AppStyles {
 
   static TextStyle book({Color color, double size = 12}) {
     return TextStyle(
-      fontWeight: FontWeight.w300,
+      fontWeight: FontWeight.w200,
       fontSize: size,
       fontFamily: 'Airbnb Cereal',
     );

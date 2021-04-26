@@ -2,8 +2,14 @@ import 'dart:io';
 import 'dart:ui';
 // import 'package:flutter/foundation.dart' as found;
 import 'package:image/image.dart' as img;
+import 'dart:ui' as ui;
 
 class ProgressImage {
+  convertFileToImage(File file, Function(Image) callback,
+      {double width, double height}) {
+    ui.decodeImageFromList(file.readAsBytesSync(), callback);
+  }
+
   Future<List<int>> convertToGreyImage(File file) async {
     try {
       var image = img.decodeImage(File(file.path).readAsBytesSync());
