@@ -9,7 +9,7 @@ part 'text_state.dart';
 
 class TextBloc extends Bloc<TextEvent, TextState> {
   TextBloc() : super(TextState.empty());
-
+  List<TextModel> listTextDeleted = [];
   @override
   Stream<TextState> mapEventToState(
     TextEvent event,
@@ -27,6 +27,18 @@ class TextBloc extends Bloc<TextEvent, TextState> {
     if (event is UpdateText) {
       var list = state.listText.toList();
       list[event.index] = event.textModel;
+      yield state.copyWith(listText: list);
+    }
+    if (event is UndoText) {
+      var list = state.listText.toList();
+      listTextDeleted.add(list.last);
+      list.removeLast();
+      yield state.copyWith(listText: list);
+    }
+    if (event is RedoText) {
+      var list = state.listText.toList();
+      list.add(listTextDeleted.first);
+      listTextDeleted.removeLast();
       yield state.copyWith(listText: list);
     }
   }

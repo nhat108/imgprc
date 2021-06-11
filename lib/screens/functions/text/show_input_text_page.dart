@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:imgprc/blocs/bloc/text_bloc.dart';
+import 'package:imgprc/blocs/text/text_bloc.dart';
+import 'package:imgprc/blocs/tool/tool_bloc.dart';
 import 'package:imgprc/config/app_colors.dart';
-import 'package:imgprc/config/app_routes.dart';
 import 'package:imgprc/config/text_styles.dart';
 import 'package:imgprc/models/text_paint.dart';
-import 'package:imgprc/screens/edit_photo_navigator/edit_photo_navigator.dart';
+import 'package:imgprc/utils/enums.dart';
 
 class InputTextPage extends StatefulWidget {
   @override
@@ -33,15 +33,19 @@ class _InputTextPageState extends State<InputTextPage> {
         actions: [
           GestureDetector(
             onTap: () {
-              TextModel textModel = TextModel(
-                textStyle: TextStyle(color: color, fontSize: size * 10),
-                offset: Offset(MediaQuery.of(context).size.width / 2,
-                    MediaQuery.of(context).size.width / 2),
-                text: _textEditingController.text,
-                textDirection: TextDirection.ltr,
-              );
-              BlocProvider.of<TextBloc>(context)
-                  .add(AddText(textModel: textModel));
+              if (_textEditingController.text.isNotEmpty) {
+                TextModel textModel = TextModel(
+                  textStyle: TextStyle(color: color, fontSize: size * 10),
+                  offset: Offset(MediaQuery.of(context).size.width / 2,
+                      MediaQuery.of(context).size.width / 2),
+                  text: _textEditingController.text,
+                  textDirection: TextDirection.ltr,
+                );
+                BlocProvider.of<TextBloc>(context)
+                    .add(AddText(textModel: textModel));
+                BlocProvider.of<ToolBloc>(context)
+                    .add(SelectTool(toolType: ToolType.Text));
+              }
               Navigator.pop(context);
             },
             child: Padding(

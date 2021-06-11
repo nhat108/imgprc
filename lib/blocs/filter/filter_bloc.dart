@@ -103,7 +103,25 @@ class FilterBloc extends Bloc<FilterEvent, FilterState> {
           }
           break;
         case FilterType.Mirror:
-          // TODO: Handle this case.
+          try {
+            yield state.copyWith(
+              filterLoading: true,
+            );
+
+            final output = await progressImage.convertImageMiror(input);
+            yield state.copyWith(
+              imageEncode: output,
+              filterLoading: false,
+              currentFilter: event.filterType,
+            );
+          } catch (e) {
+            print(e);
+            yield state.copyWith(
+              currentFilter: event.filterType,
+              filterError: e.toString(),
+            );
+          }
+          break;
           break;
       }
     }

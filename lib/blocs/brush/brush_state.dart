@@ -10,7 +10,7 @@ class BrushState extends Equatable {
   @override
   List<Object> get props => [this.selectedColor, this.points, this.strokeWidth];
   factory BrushState.empty() {
-    return BrushState(selectedColor: Colors.white, points: [], strokeWidth: 1);
+    return BrushState(selectedColor: Colors.white, points: [], strokeWidth: 3);
   }
   BrushState copyWith({
     final Color selectedColor,

@@ -3,15 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:imgprc/blocs/bloc/text_bloc.dart';
 import 'package:imgprc/blocs/brush/brush_bloc.dart';
+import 'package:imgprc/blocs/emoij/emoij_bloc.dart';
 import 'package:imgprc/blocs/filter/filter_bloc.dart';
 import 'package:imgprc/blocs/home/home_bloc.dart';
+import 'package:imgprc/blocs/text/text_bloc.dart';
+import 'package:imgprc/blocs/tool/tool_bloc.dart';
 import 'package:imgprc/config/app_assets.dart';
 import 'package:imgprc/config/app_colors.dart';
 import 'package:imgprc/config/text_styles.dart';
 import 'package:imgprc/models/drawing_point.dart';
-import 'package:imgprc/models/text_paint.dart';
+import 'package:imgprc/utils/enums.dart';
 import 'package:imgprc/utils/progress_image.dart';
 
 import 'dart:ui' as ui;
@@ -25,9 +27,6 @@ class EditPhotoNavigator extends StatefulWidget {
 }
 
 class _EditPhotoNavigatorState extends State<EditPhotoNavigator> {
-  StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.butt : StrokeCap.round;
-  GlobalKey _globalKey = GlobalKey(debugLabel: 'imagedisplay');
-  GlobalKey _mainKey = GlobalKey(debugLabel: 'mainkey');
   var image;
   @override
   void initState() {
@@ -37,28 +36,139 @@ class _EditPhotoNavigatorState extends State<EditPhotoNavigator> {
     // _initImage();
   }
 
+  Widget _brushAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.secondaryColor,
+      leading: IconButton(
+        icon: Icon(
+          Icons.clear,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          BlocProvider.of<ToolBloc>(context)
+              .add(SelectTool(toolType: ToolType.None));
+        },
+      ),
+      title: Text("Brush"),
+      actions: [
+        IconButton(
+            icon: Icon(
+              Icons.undo,
+            ),
+            onPressed: () {
+              BlocProvider.of<BrushBloc>(context).add(Undo());
+            }),
+        IconButton(
+          icon: Icon(Icons.redo),
+          onPressed: () {
+            BlocProvider.of<BrushBloc>(context).add(Redo());
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _textAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.secondaryColor,
+      leading: IconButton(
+        icon: Icon(
+          Icons.clear,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          BlocProvider.of<ToolBloc>(context)
+              .add(SelectTool(toolType: ToolType.None));
+        },
+      ),
+      title: Text("Text"),
+      actions: [
+        IconButton(
+            icon: Icon(
+              Icons.undo,
+            ),
+            onPressed: () {
+              BlocProvider.of<TextBloc>(context).add(UndoText());
+            }),
+        IconButton(
+          icon: Icon(Icons.redo),
+          onPressed: () {
+            BlocProvider.of<TextBloc>(context).add(RedoText());
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _emoijAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.secondaryColor,
+      leading: IconButton(
+        icon: Icon(
+          Icons.clear,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          BlocProvider.of<ToolBloc>(context)
+              .add(SelectTool(toolType: ToolType.None));
+        },
+      ),
+      title: Text("Emoij"),
+      actions: [
+        IconButton(
+            icon: Icon(
+              Icons.undo,
+            ),
+            onPressed: () {
+              BlocProvider.of<TextBloc>(context).add(UndoText());
+            }),
+        IconButton(
+          icon: Icon(Icons.redo),
+          onPressed: () {
+            BlocProvider.of<TextBloc>(context).add(RedoText());
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        key: _mainKey,
-        appBar: AppBar(
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                "NEXT",
-                style: AppStyles.medium(size: 16),
-              ),
-            )
-          ],
-          title: SvgPicture.asset(
-            AppAssets.magicIcon,
-            color: Colors.white,
-            width: 22,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: BlocBuilder<ToolBloc, ToolState>(
+            builder: (context, state) {
+              if (state.currentToolType == ToolType.Brush) {
+                return _brushAppBar();
+              }
+              if (state.currentToolType == ToolType.Text) {
+                return _textAppBar();
+              }
+              if (state.currentToolType == ToolType.Emoij) {
+                return _emoijAppBar();
+              }
+              return AppBar(
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      "NEXT",
+                      style: AppStyles.medium(size: 16),
+                    ),
+                  )
+                ],
+                title: SvgPicture.asset(
+                  AppAssets.magicIcon,
+                  color: Colors.white,
+                  width: 22,
+                ),
+                backgroundColor: AppColors.secondaryColor,
+              );
+            },
           ),
-          backgroundColor: AppColors.secondaryColor,
         ),
         backgroundColor: AppColors.primaryColor,
         bottomNavigationBar: TabBar(tabs: [
@@ -101,11 +211,21 @@ class ImageDisplay extends StatefulWidget {
 
 class _ImageDisplayState extends State<ImageDisplay> {
   StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.butt : StrokeCap.round;
-  var image;
+  ui.Image image;
   @override
   void initState() {
     super.initState();
     _initImage();
+    BlocProvider.of<FilterBloc>(context).listen((state) async {
+      if (state.imageEncode.isNotEmpty) {
+        ProgressImage().convertUnit8ListToImage(state.imageEncode,
+            (result) async {
+          setState(() {
+            image = result;
+          });
+        });
+      }
+    });
   }
 
   _initImage() {
@@ -122,17 +242,15 @@ class _ImageDisplayState extends State<ImageDisplay> {
     return AspectRatio(
       aspectRatio: 1,
       child: GestureDetector(
-        onTap: () {
-          print("tap");
-        },
         onPanUpdate: (details) {
-          RenderBox renderBox = context.findRenderObject();
-          var strokeWidth =
-              BlocProvider.of<BrushBloc>(context).state.strokeWidth;
-          var selectedColor =
-              BlocProvider.of<BrushBloc>(context).state.selectedColor;
+          var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
+          if (tool == ToolType.Brush) {
+            RenderBox renderBox = context.findRenderObject();
+            var strokeWidth =
+                BlocProvider.of<BrushBloc>(context).state.strokeWidth;
+            var selectedColor =
+                BlocProvider.of<BrushBloc>(context).state.selectedColor;
 
-          setState(() {
             BlocProvider.of<BrushBloc>(context).add(Draw(
                 drawingPoints: DrawingPoints(
                     points: renderBox.globalToLocal(details.globalPosition),
@@ -141,10 +259,11 @@ class _ImageDisplayState extends State<ImageDisplay> {
                       ..isAntiAlias = true
                       ..color = selectedColor
                       ..strokeWidth = strokeWidth)));
-          });
+          }
         },
         onPanStart: (details) {
-          setState(() {
+          var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
+          if (tool == ToolType.Brush) {
             RenderBox renderBox = context.findRenderObject();
             var strokeWidth =
                 BlocProvider.of<BrushBloc>(context).state.strokeWidth;
@@ -158,12 +277,13 @@ class _ImageDisplayState extends State<ImageDisplay> {
                       ..isAntiAlias = true
                       ..color = selectedColor
                       ..strokeWidth = strokeWidth)));
-          });
+          }
         },
         onPanEnd: (details) {
-          setState(() {
+          var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
+          if (tool == ToolType.Brush) {
             BlocProvider.of<BrushBloc>(context).add(Draw(drawingPoints: null));
-          });
+          }
         },
         child:
             BlocBuilder<BrushBloc, BrushState>(builder: (context, brushState) {
@@ -171,66 +291,68 @@ class _ImageDisplayState extends State<ImageDisplay> {
               builder: (context, filterState) {
             return BlocBuilder<TextBloc, TextState>(
                 builder: (context, textState) {
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(
-                      // size: Size.fromHeight(100),
-                      painter: ImagePainter(
-                        pointsList: brushState.points,
-                        image: image,
+              return BlocBuilder<EmoijBloc, EmoijState>(
+                  builder: (context, emoijState) {
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(
+                        // size: Size.fromHeight(100),
+                        painter: ImagePainter(
+                          pointsList: brushState.points,
+                          image: image,
+                        ),
                       ),
                     ),
-                  ),
-                ]..addAll(textState.listText.map((e) {
-                    Text text = Text(
-                      "${e.text}",
-                      style: e.textStyle,
-                    );
-                    return Positioned.fill(
-                      left: e.offset.dx,
-                      top: e.offset.dy,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        // onScaleStart: (detail) {
-                        //   // _editPhotoBloc.add(UpdateSticker(
-                        //   //   index: index,
-                        //   //   offset: detail.focalPoint,
-                        //   //   previousZoom: state.listStickerModel[index].zoom,
-                        //   // ));
-                        //   // BlocProvider.of<TextBloc>(context).add(UpdateText(
-                        //   //     index: textState.listText.indexOf(e),
-                        //   //     textModel: e.copyWith(
-                        //   //       offset: detail.focalPoint,
-                        //   //     )));
-                        // },
-                        // onScaleUpdate: (detail) {
-                        //   print("${detail.focalPoint}");
-                        //   BlocProvider.of<TextBloc>(context).add(UpdateText(
-                        //       index: textState.listText.indexOf(e),
-                        //       textModel: e.copyWith(
-                        //         offset: detail.localFocalPoint,
-                        //       )));
-                        //   // _editPhotoBloc.add(UpdateSticker(
-                        //   //     index: index,
-                        //   //     offset: Offset(detail.localFocalPoint.dx,
-                        //   //         detail.focalPoint.dy),
-                        //   //     angle: detail.rotation,
-                        //   //     zoom: state.listStickerModel[index].previousZoom *
-                        //   //         detail.scale));
-                        // },
-                        onPanUpdate: (detail) {
-                          BlocProvider.of<TextBloc>(context).add(UpdateText(
-                              index: textState.listText.indexOf(e),
-                              textModel: e.copyWith(
-                                offset: detail.localPosition,
-                              )));
-                        },
-                        child: text,
-                      ),
-                    );
-                  }).toList()),
-              );
+                  ]
+                    ..addAll(textState.listText.map((e) {
+                      Text text = Text(
+                        "${e.text}",
+                        style: e.textStyle,
+                      );
+                      return Positioned.fill(
+                        left: e.offset.dx,
+                        top: e.offset.dy,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onPanUpdate: (detail) {
+                            BlocProvider.of<TextBloc>(context).add(UpdateText(
+                                index: textState.listText.indexOf(e),
+                                textModel: e.copyWith(
+                                  offset: detail.localPosition,
+                                )));
+                          },
+                          child: text,
+                        ),
+                      );
+                    }).toList())
+                    ..addAll(emoijState.emoijs.map((e) {
+                      return Positioned.fill(
+                        left: e.offset.dx,
+                        top: e.offset.dy,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onPanUpdate: (detail) {
+                            BlocProvider.of<EmoijBloc>(context).add(
+                              UpdateEmoij(
+                                detail.localPosition,
+                                emoijState.emoijs.indexOf(e),
+                              ),
+                            );
+                          },
+                          child: Column(
+                            children: [
+                              SvgPicture.asset(
+                                e.path,
+                                width: e.size,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList()),
+                );
+              });
             });
           });
         }),

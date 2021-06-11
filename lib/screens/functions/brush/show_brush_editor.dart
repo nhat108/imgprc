@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:imgprc/blocs/tool/tool_bloc.dart';
 import 'package:imgprc/blocs/brush/brush_bloc.dart';
 import 'package:imgprc/config/text_styles.dart';
+import 'package:imgprc/utils/enums.dart';
 
 class ShowBrushTool extends StatefulWidget {
   @override
@@ -22,6 +24,8 @@ class _ShowBrushToolState extends State<ShowBrushTool> {
                 children: [
                   GestureDetector(
                     onTap: () {
+                      BlocProvider.of<ToolBloc>(context)
+                          .add(SelectTool(toolType: ToolType.None));
                       Navigator.pop(context);
                     },
                     child: Text(
@@ -32,6 +36,8 @@ class _ShowBrushToolState extends State<ShowBrushTool> {
                   ),
                   GestureDetector(
                     onTap: () {
+                      BlocProvider.of<ToolBloc>(context)
+                          .add(SelectTool(toolType: ToolType.Brush));
                       Navigator.pop(context);
                     },
                     child: Text(
@@ -62,16 +68,18 @@ class _ShowBrushToolState extends State<ShowBrushTool> {
                   ),
                   Expanded(
                       child: Slider(
-                          min: 1,
-                          max: 10,
-                          value: state.strokeWidth,
+                          min: 3,
+                          max: 30,
+                          value: state.strokeWidth <= 3
+                              ? 3
+                              : state.strokeWidth / 3,
                           semanticFormatterCallback: (value) {
                             return value.toInt().toString();
                           },
                           divisions: 9,
                           onChanged: (value) {
                             BlocProvider.of<BrushBloc>(context)
-                                .add(UpdateBrush(size: value));
+                                .add(UpdateBrush(size: value * 3));
                           })),
                   Text(
                     "${state.strokeWidth}",

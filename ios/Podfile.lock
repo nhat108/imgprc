@@ -1,6 +1,4 @@
 PODS:
-  - camera_deep_ar (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
   - image_editor_pro (0.0.1):
     - Flutter
@@ -16,7 +14,6 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - camera_deep_ar (from `.symlinks/plugins/camera_deep_ar/ios`)
   - Flutter (from `Flutter`)
   - image_editor_pro (from `.symlinks/plugins/image_editor_pro/ios`)
   - image_gallery_saver (from `.symlinks/plugins/image_gallery_saver/ios`)
@@ -26,8 +23,6 @@ DEPENDENCIES:
   - photo_gallery (from `.symlinks/plugins/photo_gallery/ios`)
 
 EXTERNAL SOURCES:
-  camera_deep_ar:
-    :path: ".symlinks/plugins/camera_deep_ar/ios"
   Flutter:
     :path: Flutter
   image_editor_pro:
@@ -44,7 +39,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/photo_gallery/ios"
 
 SPEC CHECKSUMS:
-  camera_deep_ar: 4263044c46e5ec52de9bb136edf382f101e4bcef
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   image_editor_pro: f3221a9be3d4833deaaa918f7f78bd1503d2a78c
   image_gallery_saver: 259eab68fb271cfd57d599904f7acdc7832e7ef2

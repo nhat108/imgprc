@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:imgprc/blocs/brush/brush_bloc.dart';
+import 'package:imgprc/blocs/emoij/emoij_bloc.dart';
 import 'package:imgprc/config/app_colors.dart';
 import 'package:imgprc/screens/home_page.dart';
 import 'package:imgprc/widgets/error_widget.dart';
 
-import 'blocs/bloc/text_bloc.dart';
 import 'blocs/filter/filter_bloc.dart';
 import 'blocs/home/home_bloc.dart';
+import 'blocs/text/text_bloc.dart';
+import 'blocs/tool/tool_bloc.dart';
 
 class SimpleBlocObserver extends BlocObserver {
   @override
@@ -46,10 +48,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => HomeBloc()..add(GetAlbum())),
+        BlocProvider(
+            create: (_) => HomeBloc()..add(GetAlbum(context: context))),
         BlocProvider(create: (_) => FilterBloc()),
         BlocProvider(create: (_) => BrushBloc()),
         BlocProvider(create: (_) => TextBloc()),
+        BlocProvider(create: (_) => ToolBloc()),
+        BlocProvider(create: (_) => EmoijBloc()),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

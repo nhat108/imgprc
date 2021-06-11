@@ -19,3 +19,7 @@ class UpdateText extends TextEvent {
   final int index;
   UpdateText({@required this.textModel, @required this.index});
 }
+
+class UndoText extends TextEvent {}
+
+class RedoText extends TextEvent {}

@@ -28,29 +28,31 @@ class _ListFiltersWidgetState extends State<ListFiltersWidget> {
                   filterType: e,
                 ));
               },
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    Helper.getFilterName(e),
-                    style: isSelected
-                        ? AppStyles.medium(size: 14)
-                        : AppStyles.book(size: 14),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  Container(
-                    height: MediaQuery.of(context).size.width * 0.25,
-                    width: MediaQuery.of(context).size.width * 0.25,
-                    margin: EdgeInsets.only(right: 10),
-                    color: Colors.pink,
-                    alignment: Alignment.center,
-                    child: Text(
+              child: Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
                       Helper.getFilterName(e),
+                      style: isSelected
+                          ? AppStyles.medium(size: 14)
+                          : AppStyles.book(size: 14),
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 4,
+                    ),
+                    Container(
+                      height: MediaQuery.of(context).size.width * 0.25,
+                      width: MediaQuery.of(context).size.width * 0.25,
+                      color: Colors.pink,
+                      alignment: Alignment.center,
+                      child: Text(
+                        Helper.getFilterName(e),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 // import 'package:flutter/foundation.dart' as found;
 import 'package:image/image.dart' as img;
@@ -8,6 +9,11 @@ class ProgressImage {
   convertFileToImage(File file, Function(Image) callback,
       {double width, double height}) {
     ui.decodeImageFromList(file.readAsBytesSync(), callback);
+  }
+
+  convertUnit8ListToImage(Uint8List list, Function(Image) callback,
+      {double width, double height}) {
+    ui.decodeImageFromList(list, callback);
   }
 
   Future<List<int>> convertToGreyImage(File file) async {
@@ -129,6 +135,31 @@ class ProgressImage {
             newB = 255;
           }
           imageRezied.setPixelRgba(j, i, newR, newG, newB);
+        }
+      }
+      return img.encodePng(imageRezied);
+    } catch (e) {
+      print(e);
+      throw e;
+    }
+  }
+
+  Future<List<int>> convertImageMiror(File file) async {
+    try {
+      var image = img.decodeImage(file.readAsBytesSync());
+
+      var imageRezied = image;
+
+      var width = imageRezied.width;
+      var height = imageRezied.height;
+      for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+          Color c = Color(image.getPixelSafe(j, i));
+          int r = c.red;
+          int g = c.green;
+          int b = c.blue;
+
+          imageRezied.setPixelRgba((width - 1) - j, i, r, g, b);
         }
       }
       return img.encodePng(imageRezied);
