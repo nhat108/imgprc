@@ -5,6 +5,9 @@ import 'dart:ui';
 import 'package:image/image.dart' as img;
 import 'dart:ui' as ui;
 
+import 'package:opencv/core/imgproc.dart';
+import 'package:opencv/opencv.dart';
+
 class ProgressImage {
   convertFileToImage(File file, Function(Image) callback,
       {double width, double height}) {
@@ -19,9 +22,7 @@ class ProgressImage {
   Future<List<int>> convertToGreyImage(File file) async {
     try {
       var image = img.decodeImage(File(file.path).readAsBytesSync());
-      // var imageRezied = img.copyResize(image,
-      //     width: (image.width * 0.5).toInt(),
-      //     height: (image.height * 0.5).toInt());
+
       var imageRezied = image;
       var width = imageRezied.width;
       var height = imageRezied.height;
@@ -42,7 +43,6 @@ class ProgressImage {
       }
 
       return img.encodePng(imageRezied);
-      // return File(file.path)..copy('newPath') ..writeAsBytesSync(img.encodePng(imageRezied));
     } catch (e) {
       print(e);
       throw e;
@@ -52,21 +52,16 @@ class ProgressImage {
   Future<List<int>> convertToNavigateImage(File file) async {
     try {
       var image = img.decodeImage(file.readAsBytesSync());
-
       var imageRezied = image;
-
       var width = imageRezied.width;
       var height = imageRezied.height;
       for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
           Color c = Color(image.getPixelSafe(j, i));
-
           int red = 255 - c.red;
           int green = 255 - c.green;
           int blue = 255 - c.blue;
-
           Color newColor = new Color.fromARGB(0, red, green, blue);
-
           imageRezied.setPixelRgba(
               j, i, newColor.red, newColor.green, newColor.blue);
         }
@@ -82,9 +77,6 @@ class ProgressImage {
   Future<List<int>> convertImageToRGB(File file) async {
     try {
       var image = img.decodeImage(file.readAsBytesSync());
-      // var imageRezied = img.copyResize(image,
-      //     width: (image.width * 0.5).toInt(),
-      //     height: (image.height * 0.5).toInt());
       var imageRezied = image;
 
       var width = imageRezied.width;
@@ -155,11 +147,7 @@ class ProgressImage {
       for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
           Color c = Color(image.getPixelSafe(j, i));
-          int r = c.red;
-          int g = c.green;
-          int b = c.blue;
-
-          imageRezied.setPixelRgba((width - 1) - j, i, r, g, b);
+          imageRezied.setPixel((width - 1) - j, i, c.value);
         }
       }
       return img.encodePng(imageRezied);
@@ -182,4 +170,29 @@ class ProgressImage {
     return int.parse(
         '0x${a.toRadixString(16)}${r.toRadixString(16)}${g.toRadixString(16)}${b.toRadixString(16)}');
   }
+
+  Future<List<int>> laplace(File file) async {
+    ///https://docs.opencv.org/3.4/d5/db5/tutorial_laplace_operator.html
+
+    /// [reduce_noise]
+    /// Remove noise by blurring with a Gaussian filter
+    var src = await ImgProc.gaussianBlur(file.readAsBytesSync(), [3, 3], 0);
+    var srcGray = await ImgProc.cvtColor(src, ImgProc.colorBGR2GRAY);
+    var output = await ImgProc.laplacian(srcGray, 10);
+
+    return output;
+  }
+
+  Future<List<int>> gaussianBlur(File file) async {
+    ///https://docs.opencv.org/master/d4/d13/tutorial_py_filtering.htm
+    var output = await ImgProc.gaussianBlur(file.readAsBytesSync(), [5, 5], 10);
+    return output;
+  }
+
+  Future<List<int>> medianBlur(File file) async {
+    var output = await ImgProc.medianBlur(file.readAsBytesSync(), 5);
+    return output;
+  }
+
+  Future exportImage(File file) async {}
 }

@@ -13,6 +13,7 @@ import 'package:imgprc/config/app_assets.dart';
 import 'package:imgprc/config/app_colors.dart';
 import 'package:imgprc/config/text_styles.dart';
 import 'package:imgprc/models/drawing_point.dart';
+import 'package:imgprc/models/text_paint.dart';
 import 'package:imgprc/utils/enums.dart';
 import 'package:imgprc/utils/progress_image.dart';
 
@@ -27,7 +28,6 @@ class EditPhotoNavigator extends StatefulWidget {
 }
 
 class _EditPhotoNavigatorState extends State<EditPhotoNavigator> {
-  var image;
   @override
   void initState() {
     BlocProvider.of<FilterBloc>(context).input =
@@ -151,12 +151,60 @@ class _EditPhotoNavigatorState extends State<EditPhotoNavigator> {
                 return _emoijAppBar();
               }
               return AppBar(
+                centerTitle: true,
                 actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Text(
-                      "NEXT",
-                      style: AppStyles.medium(size: 16),
+                  GestureDetector(
+                    onTap: () {
+                      var imageEncode = BlocProvider.of<FilterBloc>(context)
+                          .state
+                          .imageEncode;
+                      var screenWidth = MediaQuery.of(context).size.width;
+                      var points =
+                          BlocProvider.of<BrushBloc>(context).state.points;
+                      var textModels =
+                          BlocProvider.of<TextBloc>(context).state.listText;
+                      var emoijs =
+                          BlocProvider.of<EmoijBloc>(context).state.emoijs;
+
+                      if (imageEncode.isNotEmpty) {
+                        ProgressImage().convertUnit8ListToImage(imageEncode,
+                            (result) async {
+                          BlocProvider.of<FilterBloc>(context).add(
+                            ExportImage(
+                              emoijs: emoijs,
+                              screenWidth: screenWidth,
+                              image: result,
+                              points: points,
+                              listText: textModels,
+                              context: context,
+                            ),
+                          );
+                        });
+                      } else {
+                        ProgressImage().convertFileToImage(
+                            File(BlocProvider.of<HomeBloc>(context)
+                                .state
+                                .imageSelected), (result) {
+                          BlocProvider.of<FilterBloc>(context).add(
+                            ExportImage(
+                              emoijs: emoijs,
+                              screenWidth: screenWidth,
+                              image: result,
+                              points: points,
+                              listText: textModels,
+                              context: context,
+                            ),
+                          );
+                        });
+                      }
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(
+                        "NEXT",
+                        style: AppStyles.medium(size: 16),
+                      ),
                     ),
                   )
                 ],
@@ -171,30 +219,47 @@ class _EditPhotoNavigatorState extends State<EditPhotoNavigator> {
           ),
         ),
         backgroundColor: AppColors.primaryColor,
-        bottomNavigationBar: TabBar(tabs: [
-          Tab(
-            text: 'FILTER',
-          ),
-          Tab(
-            text: 'EDIT',
-          )
-        ]),
-        body: Column(
-          children: [
-            ImageDisplay(
-                // key: _globalKey,
-                ),
-            Expanded(
-              flex: 4,
-              child: TabBarView(
+        bottomNavigationBar: SafeArea(
+          child: TabBar(tabs: [
+            Tab(
+              text: 'FILTER',
+            ),
+            Tab(
+              text: 'EDIT',
+            )
+          ]),
+        ),
+        body: BlocBuilder<FilterBloc, FilterState>(builder: (context, state) {
+          return Stack(
+            children: [
+              Column(
                 children: [
-                  ListFiltersWidget(),
-                  EditToolWidget(),
+                  ImageDisplay(),
+                  Expanded(
+                    flex: 4,
+                    child: TabBarView(
+                      children: [
+                        ListFiltersWidget(),
+                        EditToolWidget(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
+              if (state.isSaving)
+                Center(
+                  child: Container(
+                    padding: EdgeInsets.all(30),
+                    child: CircularProgressIndicator(),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                )
+            ],
+          );
+        }),
       ),
     );
   }
@@ -210,22 +275,13 @@ class ImageDisplay extends StatefulWidget {
 }
 
 class _ImageDisplayState extends State<ImageDisplay> {
-  StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.butt : StrokeCap.round;
+  StrokeCap strokeCap =
+      (Platform.isAndroid) ? StrokeCap.round : StrokeCap.round;
   ui.Image image;
   @override
   void initState() {
     super.initState();
     _initImage();
-    BlocProvider.of<FilterBloc>(context).listen((state) async {
-      if (state.imageEncode.isNotEmpty) {
-        ProgressImage().convertUnit8ListToImage(state.imageEncode,
-            (result) async {
-          setState(() {
-            image = result;
-          });
-        });
-      }
-    });
   }
 
   _initImage() {
@@ -239,123 +295,144 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: GestureDetector(
-        onPanUpdate: (details) {
-          var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
-          if (tool == ToolType.Brush) {
-            RenderBox renderBox = context.findRenderObject();
-            var strokeWidth =
-                BlocProvider.of<BrushBloc>(context).state.strokeWidth;
-            var selectedColor =
-                BlocProvider.of<BrushBloc>(context).state.selectedColor;
+    print(MediaQuery.of(context).size.width);
+    return BlocListener<FilterBloc, FilterState>(
+      listenWhen: (oldState, newState) {
+        if (oldState.imageEncode != newState.imageEncode) {
+          return true;
+        }
+        return false;
+      },
+      listener: (_, state) {
+        ProgressImage().convertUnit8ListToImage(state.imageEncode,
+            (result) async {
+          setState(() {
+            image = result;
+          });
+        });
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.width,
+        child: GestureDetector(
+          onPanUpdate: (details) {
+            var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
+            if (tool == ToolType.Brush) {
+              RenderBox renderBox = context.findRenderObject();
 
-            BlocProvider.of<BrushBloc>(context).add(Draw(
-                drawingPoints: DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
-                    paint: Paint()
-                      ..strokeCap = strokeCap
-                      ..isAntiAlias = true
-                      ..color = selectedColor
-                      ..strokeWidth = strokeWidth)));
-          }
-        },
-        onPanStart: (details) {
-          var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
-          if (tool == ToolType.Brush) {
-            RenderBox renderBox = context.findRenderObject();
-            var strokeWidth =
-                BlocProvider.of<BrushBloc>(context).state.strokeWidth;
-            var selectedColor =
-                BlocProvider.of<BrushBloc>(context).state.selectedColor;
-            BlocProvider.of<BrushBloc>(context).add(Draw(
-                drawingPoints: DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
-                    paint: Paint()
-                      ..strokeCap = strokeCap
-                      ..isAntiAlias = true
-                      ..color = selectedColor
-                      ..strokeWidth = strokeWidth)));
-          }
-        },
-        onPanEnd: (details) {
-          var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
-          if (tool == ToolType.Brush) {
-            BlocProvider.of<BrushBloc>(context).add(Draw(drawingPoints: null));
-          }
-        },
-        child:
-            BlocBuilder<BrushBloc, BrushState>(builder: (context, brushState) {
-          return BlocBuilder<FilterBloc, FilterState>(
-              builder: (context, filterState) {
-            return BlocBuilder<TextBloc, TextState>(
-                builder: (context, textState) {
-              return BlocBuilder<EmoijBloc, EmoijState>(
-                  builder: (context, emoijState) {
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: CustomPaint(
-                        // size: Size.fromHeight(100),
-                        painter: ImagePainter(
-                          pointsList: brushState.points,
-                          image: image,
-                        ),
-                      ),
-                    ),
-                  ]
-                    ..addAll(textState.listText.map((e) {
-                      Text text = Text(
-                        "${e.text}",
-                        style: e.textStyle,
-                      );
-                      return Positioned.fill(
-                        left: e.offset.dx,
-                        top: e.offset.dy,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onPanUpdate: (detail) {
-                            BlocProvider.of<TextBloc>(context).add(UpdateText(
-                                index: textState.listText.indexOf(e),
-                                textModel: e.copyWith(
-                                  offset: detail.localPosition,
-                                )));
-                          },
-                          child: text,
-                        ),
-                      );
-                    }).toList())
-                    ..addAll(emoijState.emoijs.map((e) {
-                      return Positioned.fill(
-                        left: e.offset.dx,
-                        top: e.offset.dy,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onPanUpdate: (detail) {
-                            BlocProvider.of<EmoijBloc>(context).add(
-                              UpdateEmoij(
-                                detail.localPosition,
-                                emoijState.emoijs.indexOf(e),
+              var strokeWidth =
+                  BlocProvider.of<BrushBloc>(context).state.strokeWidth;
+              var selectedColor =
+                  BlocProvider.of<BrushBloc>(context).state.selectedColor;
+
+              BlocProvider.of<BrushBloc>(context).add(Draw(
+                  drawingPoints: DrawingPoints(
+                      offset: renderBox.globalToLocal(details.globalPosition),
+                      paint: Paint()
+                        ..strokeCap = strokeCap
+                        ..isAntiAlias = true
+                        ..color = selectedColor
+                        ..strokeWidth = strokeWidth)));
+            }
+          },
+          onPanStart: (details) {
+            var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
+            if (tool == ToolType.Brush) {
+              RenderBox renderBox = context.findRenderObject();
+              var strokeWidth =
+                  BlocProvider.of<BrushBloc>(context).state.strokeWidth;
+              var selectedColor =
+                  BlocProvider.of<BrushBloc>(context).state.selectedColor;
+              BlocProvider.of<BrushBloc>(context).add(Draw(
+                  drawingPoints: DrawingPoints(
+                      offset: renderBox.globalToLocal(details.globalPosition),
+                      paint: Paint()
+                        ..strokeCap = strokeCap
+                        ..isAntiAlias = true
+                        ..color = selectedColor
+                        ..strokeWidth = strokeWidth)));
+            }
+          },
+          onPanEnd: (details) {
+            var tool = BlocProvider.of<ToolBloc>(context).state.currentToolType;
+            if (tool == ToolType.Brush) {
+              BlocProvider.of<BrushBloc>(context)
+                  .add(Draw(drawingPoints: null));
+            }
+          },
+          child: BlocBuilder<BrushBloc, BrushState>(
+              builder: (context, brushState) {
+            return BlocBuilder<FilterBloc, FilterState>(
+                builder: (context, filterState) {
+              return BlocBuilder<TextBloc, TextState>(
+                  builder: (context, textState) {
+                return BlocBuilder<EmoijBloc, EmoijState>(
+                    builder: (context, emoijState) {
+                  return Stack(
+                    children: [
+                      Stack(
+                        children: [
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: ImagePainter(
+                                pointsList: brushState.points,
+                                image: image,
+                              ),
+                            ),
+                          ),
+                        ]
+                          ..addAll(textState.listText.map((e) {
+                            return TextWidget(
+                              index: textState.listText.indexOf(e),
+                              textModel: e,
+                            );
+                          }).toList())
+                          ..addAll(emoijState.emoijs.map((e) {
+                            return Positioned.fill(
+                              left: e.offset.dx,
+                              top: e.offset.dy,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.translucent,
+                                onPanUpdate: (detail) {
+                                  BlocProvider.of<EmoijBloc>(context).add(
+                                    UpdateEmoij(
+                                      detail.localPosition,
+                                      emoijState.emoijs.indexOf(e),
+                                    ),
+                                  );
+                                },
+                                child: Column(
+                                  children: [
+                                    SvgPicture.asset(
+                                      e.path,
+                                      width: e.size,
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
-                          },
-                          child: Column(
-                            children: [
-                              SvgPicture.asset(
-                                e.path,
-                                width: e.size,
-                              ),
-                            ],
+                          }).toList()),
+                      ),
+                      if (filterState.filterLoading)
+                        Center(
+                          child: Container(
+                            padding: EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: CircularProgressIndicator(
+                              backgroundColor: AppColors.primaryColor,
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList()),
-                );
+                        )
+                    ],
+                  );
+                });
               });
             });
-          });
-        }),
+          }),
+        ),
       ),
     );
   }
@@ -377,7 +454,7 @@ class ImagePainter extends CustomPainter {
 
     pointsList = pointsList.map((e) {
       if (e != null) {
-        if (e.points.dy <= dst.height) {
+        if (e.offset.dy <= dst.height) {
           return e;
         }
       }
@@ -387,13 +464,13 @@ class ImagePainter extends CustomPainter {
 
     for (int i = 0; i < pointsList.length - 1; i++) {
       if (pointsList[i] != null && pointsList[i + 1] != null) {
-        canvas.drawLine(pointsList[i].points, pointsList[i + 1].points,
+        canvas.drawLine(pointsList[i].offset, pointsList[i + 1].offset,
             pointsList[i].paint);
       } else if (pointsList[i] != null && pointsList[i + 1] == null) {
         offsetPoints.clear();
-        offsetPoints.add(pointsList[i].points);
+        offsetPoints.add(pointsList[i].offset);
         offsetPoints.add(Offset(
-            pointsList[i].points.dx + 0.1, pointsList[i].points.dy + 0.1));
+            pointsList[i].offset.dx + 0.1, pointsList[i].offset.dy + 0.1));
         canvas.drawPoints(
             ui.PointMode.points, offsetPoints, pointsList[i].paint);
       }
@@ -403,5 +480,38 @@ class ImagePainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
+  }
+}
+
+class TextWidget extends StatelessWidget {
+  final TextModel textModel;
+  final int index;
+
+  const TextWidget({Key key, @required this.textModel, @required this.index})
+      : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    Text text = Text(
+      "${textModel.text}",
+      style: textModel.textStyle,
+    );
+    return Positioned.fill(
+      left: textModel.offset.dx,
+      top: textModel.offset.dy,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onPanUpdate: (detail) {
+          BlocProvider.of<TextBloc>(context).add(
+            UpdateText(
+              index: index,
+              textModel: textModel.copyWith(
+                offset: detail.localPosition,
+              ),
+            ),
+          );
+        },
+        child: text,
+      ),
+    );
   }
 }

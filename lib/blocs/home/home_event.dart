@@ -13,3 +13,9 @@ class SelectMainImage extends HomeEvent {
 
   SelectMainImage(this.medium);
 }
+
+class SelectImageFromCamera extends HomeEvent {
+  final String path;
+
+  SelectImageFromCamera(this.path);
+}

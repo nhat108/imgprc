@@ -54,85 +54,81 @@ class EditToolWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ToolBloc, ToolState>(builder: (context, state) {
       return Container(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: ToolType.values.map((e) {
-              if (e == ToolType.None) {
-                return Container();
-              }
-              return GestureDetector(
-                onTap: () {
-                  // AppRoutes.push(context, ImageEditorPro());
-                  switch (e) {
-                    case ToolType.Brush:
-                      showModalBottomSheet(
-                          context: context, builder: (_) => ShowBrushTool());
-                      break;
-                    case ToolType.Text:
-                      AppRoutes.push(context, InputTextPage());
-                      break;
-                    case ToolType.Eraser:
-                      // TODO: Handle this case.
-                      break;
-                    case ToolType.Emoij:
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (_) => ListEmoijWidget(
-                                onEmoijTap: (value) {
-                                  BlocProvider.of<ToolBloc>(context).add(
-                                      SelectTool(toolType: ToolType.Emoij));
-                                  BlocProvider.of<EmoijBloc>(context).add(
-                                    AddEmoij(
-                                      EmoijModel(
-                                        offset: Offset(
-                                          MediaQuery.of(context).size.width / 2,
-                                          MediaQuery.of(context).size.height /
-                                              2,
-                                        ),
-                                        path: value,
-                                        size: 40,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: ToolType.values.map((e) {
+            if (e == ToolType.None || e == ToolType.Eraser) {
+              return Container();
+            }
+            return GestureDetector(
+              onTap: () {
+                // AppRoutes.push(context, ImageEditorPro());
+                switch (e) {
+                  case ToolType.Brush:
+                    showModalBottomSheet(
+                        context: context, builder: (_) => ShowBrushTool());
+                    break;
+                  case ToolType.Text:
+                    AppRoutes.push(context, InputTextPage());
+                    break;
+                  case ToolType.Eraser:
+                    // TODO: Handle this case.
+                    break;
+                  case ToolType.Emoij:
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (_) => ListEmoijWidget(
+                              onEmoijTap: (value) {
+                                BlocProvider.of<ToolBloc>(context)
+                                    .add(SelectTool(toolType: ToolType.Emoij));
+                                BlocProvider.of<EmoijBloc>(context).add(
+                                  AddEmoij(
+                                    EmoijModel(
+                                      offset: Offset(
+                                        MediaQuery.of(context).size.width / 2,
+                                        MediaQuery.of(context).size.width / 2,
                                       ),
+                                      path: value,
+                                      size: 40,
                                     ),
-                                  );
-                                },
-                              ));
-                      break;
-                    case ToolType.None:
-                      // TODO: Handle this case.
-                      break;
-                  }
-                },
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.25,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(20),
-                        decoration: BoxDecoration(
+                                  ),
+                                );
+                              },
+                            ));
+                    break;
+                  case ToolType.None:
+                    break;
+                }
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.25,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: state.currentToolType == e
+                            ? Colors.white
+                            : Colors.transparent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white),
+                      ),
+                      child: SvgPicture.asset(getAsset(e),
+                          width: 22,
                           color: state.currentToolType == e
-                              ? Colors.white
-                              : Colors.transparent,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white),
-                        ),
-                        child: SvgPicture.asset(getAsset(e),
-                            width: 22,
-                            color: state.currentToolType == e
-                                ? Colors.black
-                                : Colors.white),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text(getName(e)),
-                    ],
-                  ),
+                              ? Colors.black
+                              : Colors.white),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Text(getName(e)),
+                  ],
                 ),
-              );
-            }).toList(),
-          ),
+              ),
+            );
+          }).toList(),
         ),
       );
     });

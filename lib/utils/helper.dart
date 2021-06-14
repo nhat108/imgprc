@@ -21,6 +21,16 @@ class Helper {
       case FilterType.Mirror:
         return "Mirror";
         break;
+      case FilterType.Laplace:
+        return "Laplace";
+        break;
+
+      case FilterType.GaussianBlue:
+        return "Gaussin Blur";
+        break;
+      case FilterType.MedianBlur:
+        return "Median Blur";
+        break;
       default:
         return "";
     }

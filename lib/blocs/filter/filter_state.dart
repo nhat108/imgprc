@@ -9,6 +9,8 @@ class FilterState extends Equatable {
 
   final File outputImage;
   final List<int> imageEncode;
+  final bool isSaving;
+
   FilterState({
     this.filterLoading,
     this.filterSuccess,
@@ -16,6 +18,7 @@ class FilterState extends Equatable {
     this.currentFilter,
     this.outputImage,
     this.imageEncode,
+    this.isSaving,
   });
 
   factory FilterState.empty() {
@@ -26,6 +29,7 @@ class FilterState extends Equatable {
       filterSuccess: false,
       currentFilter: FilterType.Normal,
       imageEncode: [],
+      isSaving: false,
     );
   }
   FilterState copyWith({
@@ -35,8 +39,10 @@ class FilterState extends Equatable {
     FilterType currentFilter,
     File outputImage,
     List<int> imageEncode,
+    bool isSaving,
   }) {
     return FilterState(
+      isSaving: isSaving ?? this.isSaving,
       imageEncode: imageEncode ?? this.imageEncode,
       outputImage: outputImage,
       currentFilter: currentFilter ?? this.currentFilter,
@@ -49,6 +55,7 @@ class FilterState extends Equatable {
   @override
   List<Object> get props => [
         this.imageEncode,
+        this.isSaving,
         this.filterLoading,
         this.filterSuccess,
         this.filterError,

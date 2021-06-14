@@ -3,9 +3,15 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:imgprc/blocs/home/home_bloc.dart';
 import 'package:imgprc/config/app_colors.dart';
+import 'package:imgprc/config/app_routes.dart';
 import 'package:imgprc/config/text_styles.dart';
 import 'package:imgprc/screens/gallery_page.dart';
+
+import 'edit_photo_navigator/edit_photo_navigator.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -84,8 +90,14 @@ class BottomNavigationBar extends StatelessWidget {
                               : AppStyles.light(size: 14)),
                     )),
                 GestureDetector(
-                  onTap: () {
-                    onChanged(1);
+                  onTap: () async {
+                    var image = await ImagePicker()
+                        .getImage(source: ImageSource.camera);
+                    if (image != null) {
+                      BlocProvider.of<HomeBloc>(context)
+                          .add(SelectImageFromCamera(image.path));
+                      AppRoutes.push(context, EditPhotoNavigator());
+                    }
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),

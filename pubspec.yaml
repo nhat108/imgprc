@@ -23,13 +23,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fluttertoast: ^7.1.8
+  image_gallery_saver: ^1.6.8
+  path_provider: ^1.6.28
+  opencv: ^1.0.4
   signature: ^3.2.1
   flutter_colorpicker: ^0.3.5
   image_editor_pro: 1.0.5
   flutter_svg: any
   photo_gallery: ^0.4.0
-  # flutter_unity_widget: ^4.0.1+1
- 
   cupertino_icons: ^0.1.2
   image: ^2.1.19
   flutter_bloc: ^6.1.3

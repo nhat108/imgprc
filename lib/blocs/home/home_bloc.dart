@@ -39,6 +39,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         List<MediaPage> mediums = [];
         for (int i = 0; i < imageAlbums.length; i++) {
           var data = await imageAlbums[i].listMedia();
+
           mediums.add(data);
         }
 
@@ -60,6 +61,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (event is SelectMainImage) {
       var file = await event.medium.getFile();
       yield state.copyWith(imageSelected: file.path);
+    }
+    if (event is SelectImageFromCamera) {
+      yield state.copyWith(imageSelected: event.path);
     }
   }
 }

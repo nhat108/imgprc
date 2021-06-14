@@ -27,9 +27,6 @@ class _FilterPageState extends State<FilterPage> {
 
             BlocProvider.of<FilterBloc>(context).add(ResetFilter());
             BlocProvider.of<FilterBloc>(context).input = file;
-            setState(() {
-              this.file = file;
-            });
           }
         },
       ),

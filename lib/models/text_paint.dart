@@ -5,12 +5,14 @@ class TextModel {
   final TextDirection textDirection;
   final TextStyle textStyle;
   final Offset offset;
-
-  TextModel(
-      {this.offset,
-      this.text = '',
-      this.textDirection = TextDirection.ltr,
-      this.textStyle});
+  final GlobalKey key;
+  TextModel({
+    this.offset,
+    this.text = '',
+    this.textDirection = TextDirection.ltr,
+    this.textStyle,
+    this.key,
+  });
   TextPainter toTextPainter() {
     return TextPainter(
       text: TextSpan(
@@ -31,6 +33,6 @@ class TextModel {
         text: text ?? this.text,
         textDirection: textDirection ?? this.textDirection,
         textStyle: textStyle ?? this.textStyle,
-        offset: offset ?? this.textStyle);
+        offset: offset ?? this.offset);
   }
 }

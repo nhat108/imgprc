@@ -70,16 +70,14 @@ class _ShowBrushToolState extends State<ShowBrushTool> {
                       child: Slider(
                           min: 3,
                           max: 30,
-                          value: state.strokeWidth <= 3
-                              ? 3
-                              : state.strokeWidth / 3,
+                          value: state.strokeWidth,
                           semanticFormatterCallback: (value) {
                             return value.toInt().toString();
                           },
-                          divisions: 9,
+                          divisions: 3,
                           onChanged: (value) {
                             BlocProvider.of<BrushBloc>(context)
-                                .add(UpdateBrush(size: value * 3));
+                                .add(UpdateBrush(size: value));
                           })),
                   Text(
                     "${state.strokeWidth}",

@@ -5,11 +5,18 @@ import 'package:flutter/material.dart';
 
 class DrawingPoints extends Equatable {
   final Paint paint;
-  final Offset points;
-  DrawingPoints({this.points, this.paint});
+  final Offset offset;
+  DrawingPoints({this.offset, this.paint});
 
   @override
-  List<Object> get props => [this.points, this.paint];
+  List<Object> get props => [this.offset, this.paint];
+  DrawingPoints copyWith({Offset offset, double strokeWidth}) {
+    var newPaint = paint;
+    // if (strokeWidth != null) {
+    //   newPaint.strokeWidth = newPaint.strokeWidth * 3;
+    // }
+    return DrawingPoints(paint: newPaint, offset: offset ?? this.offset);
+  }
 }
 
 class DrawingPainter extends CustomPainter {
@@ -20,13 +27,13 @@ class DrawingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (int i = 0; i < pointsList.length - 1; i++) {
       if (pointsList[i] != null && pointsList[i + 1] != null) {
-        canvas.drawLine(pointsList[i].points, pointsList[i + 1].points,
+        canvas.drawLine(pointsList[i].offset, pointsList[i + 1].offset,
             pointsList[i].paint);
       } else if (pointsList[i] != null && pointsList[i + 1] == null) {
         offsetPoints.clear();
-        offsetPoints.add(pointsList[i].points);
+        offsetPoints.add(pointsList[i].offset);
         offsetPoints.add(Offset(
-            pointsList[i].points.dx + 0.1, pointsList[i].points.dy + 0.1));
+            pointsList[i].offset.dx + 0.1, pointsList[i].offset.dy + 0.1));
         canvas.drawPoints(PointMode.points, offsetPoints, pointsList[i].paint);
       }
     }
